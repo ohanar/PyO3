@@ -16,13 +16,16 @@ use conversion::{ToPyObject, FromPyObject};
 /// Mapping interface
 pub trait PyMappingProtocol: PythonObject {
     fn __len__(&self, py: Python) -> Self::Result
-        where Self: PyMappingLenProtocol;
+        where Self: PyMappingLenProtocol
+    { unimplemented!() }
 
     fn __getitem__(&self, py: Python, key: Self::Key) -> Self::Result
-        where Self: PyMappingGetItemProtocol;
+        where Self: PyMappingGetItemProtocol
+    { unimplemented!() }
 
     fn __setitem__(&self, py: Python, key: Self::Key, value: Option<Self::Value>) -> Self::Result
-        where Self: PyMappingSetItemProtocol;
+        where Self: PyMappingSetItemProtocol
+    { unimplemented!() }
 }
 
 // The following are a bunch of marker traits used to detect

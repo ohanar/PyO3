@@ -16,28 +16,36 @@ use conversion::{ToPyObject, FromPyObject};
 /// Sequence interface
 pub trait PySequenceProtocol: PythonObject {
     fn __len__(&self, py: Python) -> Self::Result
-        where Self: PySequenceLenProtocol;
+        where Self: PySequenceLenProtocol
+    { unimplemented!() }
 
     fn __getitem__(&self, py: Python, key: isize) -> Self::Result
-        where Self: PySequenceGetItemProtocol;
+        where Self: PySequenceGetItemProtocol
+    { unimplemented!() }
 
     fn __setitem__(&self, py: Python, key: isize, value: Option<Self::Value>) -> Self::Result
-        where Self: PySequenceSetItemProtocol;
-
+        where Self: PySequenceSetItemProtocol
+    { unimplemented!() }
+    
     fn __contains__(&self, py: Python, value: Self::Value) -> Self::Result
-        where Self: PySequenceContainsProtocol;
+        where Self: PySequenceContainsProtocol
+    { unimplemented!() }
 
     fn __concat__(&self, py: Python, other: Self::Other) -> Self::Result
-        where Self: PySequenceConcatProtocol;
+        where Self: PySequenceConcatProtocol
+    { unimplemented!() }
 
     fn __repeat__(&self, py: Python, count: isize) -> Self::Result
-        where Self: PySequenceRepeatProtocol;
+        where Self: PySequenceRepeatProtocol
+    { unimplemented!() }
 
     fn __inplace_concat__(&self, py: Python, other: Self::Other) -> Self::Result
-        where Self: PySequenceInplaceConcatProtocol;
+        where Self: PySequenceInplaceConcatProtocol
+    { unimplemented!() }
 
     fn __inplace_repeat__(&self, py: Python, count: isize) -> Self::Result
-        where Self: PySequenceInplaceRepeatProtocol;
+        where Self: PySequenceInplaceRepeatProtocol
+    { unimplemented!() }
 }
 
 // The following are a bunch of marker traits used to detect
