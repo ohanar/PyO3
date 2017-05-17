@@ -13,6 +13,7 @@ use conversion::{ToPyObject, FromPyObject};
 use callback::{PyObjectCallbackConverter, LenResultConverter, UnitCallbackConverter};
 
 /// Mapping interface
+#[allow(unused_variables)]
 pub trait PyMappingProtocol: PythonObject {
     fn __len__(&self, py: Python) -> Self::Result
         where Self: PyMappingLenProtocol
@@ -53,9 +54,7 @@ pub trait PyMappingProtocolImpl {
 
 impl<T> PyMappingProtocolImpl for T {
     #[inline]
-    default fn tp_as_mapping() -> Option<ffi::PyMappingMethods> {
-        None
-    }
+    default fn tp_as_mapping() -> Option<ffi::PyMappingMethods> { None }
 }
 
 impl<T> PyMappingProtocolImpl for T where T: PyMappingProtocol {
@@ -77,9 +76,7 @@ impl<T> PyMappingLenProtocolImpl for T
     where T: PyMappingProtocol
 {
     #[inline]
-    default fn mp_length() -> Option<ffi::lenfunc> {
-        None
-    }
+    default fn mp_length() -> Option<ffi::lenfunc> { None }
 }
 
 impl<T> PyMappingLenProtocolImpl for T
@@ -99,9 +96,7 @@ impl<T> PyMappingGetItemProtocolImpl for T
     where T: PyMappingProtocol
 {
     #[inline]
-    default fn mp_subscript() -> Option<ffi::binaryfunc> {
-        None
-    }
+    default fn mp_subscript() -> Option<ffi::binaryfunc> { None }
 }
 
 impl<T> PyMappingGetItemProtocolImpl for T
@@ -121,9 +116,7 @@ impl<T> PyMappingSetItemProtocolImpl for T
     where T: PyMappingProtocol
 {
     #[inline]
-    default fn mp_ass_subscript() -> Option<ffi::objobjargproc> {
-        None
-    }
+    default fn mp_ass_subscript() -> Option<ffi::objobjargproc> { None }
 }
 
 impl<T> PyMappingSetItemProtocolImpl for T

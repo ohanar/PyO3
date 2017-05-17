@@ -5,7 +5,7 @@ use std::os::raw::c_void;
 
 #[macro_use] mod macros;
 
-//pub mod async;
+pub mod async;
 //pub mod basic;
 //pub mod buffer;
 //pub mod context;

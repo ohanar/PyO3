@@ -10,92 +10,119 @@ use ffi;
 use err::PyResult;
 use python::{Python, PythonObject};
 use objects::PyObject;
+use conversion::ToPyObject;
 use callback::PyObjectCallbackConverter;
-use class::NO_METHODS;
-
 
 /// Awaitable interface
-pub trait PyAsyncProtocol {
+#[allow(unused_variables)]
+pub trait PyAsyncProtocol: PythonObject {
+    fn __await__(&self, py: Python) -> Self::Result
+        where Self: PyAsyncAwaitProtocol
+    { unimplemented!() }
 
-    fn __await__(&self, py: Python) -> PyResult<PyObject>;
+    fn __aiter__(&self, py: Python) -> Self::Result
+        where Self: PyAsyncAiterProtocol
+    { unimplemented!() }
 
-    fn __aiter__(&self, py: Python) -> PyResult<PyObject>;
-
-    fn __anext__(&self, py: Python) -> PyResult<PyObject>;
-
-    fn __aenter__(&self, py: Python) -> PyResult<PyObject>;
-
-    fn __aexit__(&self, py: Python) -> PyResult<PyObject>;
-
+    fn __anext__(&self, py: Python) -> Self::Result
+        where Self: PyAsyncAnextProtocol
+    { unimplemented!() }
 }
 
-
-impl<P> PyAsyncProtocol for P {
-
-    default fn __await__(&self, py: Python) -> PyResult<PyObject> {
-        Ok(py.None())
-    }
-
-    default fn __aiter__(&self, py: Python) -> PyResult<PyObject> {
-        Ok(py.None())
-    }
-
-    default fn __anext__(&self, py: Python) -> PyResult<PyObject> {
-        Ok(py.None())
-    }
-
-    default fn __aenter__(&self, py: Python) -> PyResult<PyObject> {
-        Ok(py.None())
-    }
-
-    default fn __aexit__(&self, py: Python) -> PyResult<PyObject> {
-        Ok(py.None())
-    }
+pub trait PyAsyncAwaitProtocol: PyAsyncProtocol {
+    type Success: ToPyObject;
+    type Result: Into<PyResult<Self::Success>>;
 }
 
+pub trait PyAsyncAiterProtocol: PyAsyncProtocol {
+    type Success: ToPyObject;
+    type Result: Into<PyResult<Self::Success>>;
+}
+
+pub trait PyAsyncAnextProtocol: PyAsyncProtocol {
+    type Success: ToPyObject;
+    type Result: Into<PyResult<Self::Success>>;
+}
 
 #[doc(hidden)]
 pub trait PyAsyncProtocolImpl {
-    fn methods() -> &'static [&'static str];
+    fn tp_as_async() -> Option<ffi::PyAsyncMethods>;
 }
 
 impl<T> PyAsyncProtocolImpl for T {
-    default fn methods() -> &'static [&'static str] {
-        NO_METHODS
+    #[inline]
+    default fn tp_as_async() -> Option<ffi::PyAsyncMethods> { None }
+}
+
+impl<T> PyAsyncProtocolImpl for T
+    where T: PyAsyncProtocol
+{
+    #[inline]
+    fn tp_as_async() -> Option<ffi::PyAsyncMethods> {
+        Some(ffi::PyAsyncMethods {
+            am_await: Self::am_await(),
+            am_aiter: Self::am_aiter(),
+            am_anext: Self::am_anext(),
+        })
     }
 }
 
-impl ffi::PyAsyncMethods {
+trait PyAsyncAwaitProtocolImpl {
+    fn am_await() -> Option<ffi::unaryfunc>;
+}
 
-    /// Construct PyAsyncMethods struct for PyTypeObject.tp_as_async
-    pub fn new<T>() -> Option<ffi::PyAsyncMethods>
-        where T: PyAsyncProtocol + PyAsyncProtocolImpl + PythonObject
-    {
-        let methods = T::methods();
-        if methods.is_empty() {
-            return None
-        }
+impl<T> PyAsyncAwaitProtocolImpl for T
+    where T: PyAsyncProtocol
+{
+    #[inline]
+    default fn am_await() -> Option<ffi::unaryfunc> { None }
+}
 
-        let mut meth: ffi::PyAsyncMethods = ffi::PyAsyncMethods_INIT;
+impl<T> PyAsyncAwaitProtocolImpl for T
+    where T: PyAsyncAwaitProtocol
+{
+    #[inline]
+    fn am_await() -> Option<ffi::unaryfunc> {
+        py_unary_func!(PyAsyncAwaitProtocol, T::__await__, PyObjectCallbackConverter)
+    }
+}
 
-        for name in methods {
-            match name {
-                &"__await__" => {
-                    meth.am_await = py_unary_func!(
-                        PyAsyncProtocol, T::__await__, PyObjectCallbackConverter);
-                },
-                &"__aiter__" => {
-                    meth.am_aiter = py_unary_func!(
-                        PyAsyncProtocol, T::__aiter__, PyObjectCallbackConverter);
-                },
-                &"__anext__" => {
-                    meth.am_anext = py_unary_func!(
-                        PyAsyncProtocol, T::__anext__, PyObjectCallbackConverter);
-                },
-                _ => unreachable!(),
-            }
-        }
+trait PyAsyncAiterProtocolImpl {
+    fn am_aiter() -> Option<ffi::unaryfunc>;
+}
 
-        Some(meth)
+impl<T> PyAsyncAiterProtocolImpl for T
+    where T: PyAsyncProtocol
+{
+    #[inline]
+    default fn am_aiter() -> Option<ffi::unaryfunc> { None }
+}
+
+impl<T> PyAsyncAiterProtocolImpl for T
+    where T: PyAsyncAiterProtocol
+{
+    #[inline]
+    fn am_aiter() -> Option<ffi::unaryfunc> {
+        py_unary_func!(PyAsyncAiterProtocol, T::__aiter__, PyObjectCallbackConverter)
+    }
+}
+
+trait PyAsyncAnextProtocolImpl {
+    fn am_anext() -> Option<ffi::unaryfunc>;
+}
+
+impl<T> PyAsyncAnextProtocolImpl for T
+    where T: PyAsyncProtocol
+{
+    #[inline]
+    default fn am_anext() -> Option<ffi::unaryfunc> { None }
+}
+
+impl<T> PyAsyncAnextProtocolImpl for T
+    where T: PyAsyncAnextProtocol
+{
+    #[inline]
+    fn am_anext() -> Option<ffi::unaryfunc> {
+        py_unary_func!(PyAsyncAnextProtocol, T::__anext__, PyObjectCallbackConverter)
     }
 }
