@@ -9,8 +9,12 @@ use ffi;
 use err::PyResult;
 use python::{Python, PythonObject, PyDrop};
 use objects::PyObject;
-use py_class::slots::{LenResultConverter, BoolConverter, UnitCallbackConverter};
-use function::PyObjectCallbackConverter;
+use callback::{
+    PyObjectCallbackConverter,
+    LenResultConverter,
+    UnitCallbackConverter,
+    BoolConverter,
+ };
 use conversion::{ToPyObject, FromPyObject};
 
 /// Sequence interface
@@ -190,7 +194,7 @@ impl<T> PySequenceSetItemProtocolImpl for T
             where T: PySequenceSetItemProtocol
         {
             const LOCATION: &'static str = "foo.__setitem__()";
-            ::_detail::handle_callback(LOCATION, UnitCallbackConverter, |py| {
+            ::callback::handle_callback(LOCATION, UnitCallbackConverter, |py| {
                 let slf = PyObject::from_borrowed_ptr(py, slf).unchecked_cast_into::<T>();
                 
                 let ret = if value.is_null() {

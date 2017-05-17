@@ -9,9 +9,8 @@ use ffi;
 use err::PyResult;
 use python::{Python, PythonObject, PyDrop};
 use objects::PyObject;
-use py_class::slots::{LenResultConverter, UnitCallbackConverter};
-use function::PyObjectCallbackConverter;
 use conversion::{ToPyObject, FromPyObject};
+use callback::{PyObjectCallbackConverter, LenResultConverter, UnitCallbackConverter};
 
 /// Mapping interface
 pub trait PyMappingProtocol: PythonObject {
@@ -140,7 +139,7 @@ impl<T> PyMappingSetItemProtocolImpl for T
             where T: PyMappingSetItemProtocol
         {
             const LOCATION: &'static str = "T.__setitem__()";
-            ::_detail::handle_callback(LOCATION, UnitCallbackConverter, |py| {
+            ::callback::handle_callback(LOCATION, UnitCallbackConverter, |py| {
                 let slf = PyObject::from_borrowed_ptr(py, slf).unchecked_cast_into::<T>();
                 let key = PyObject::from_borrowed_ptr(py, key);
                 
